@@ -1,0 +1,54 @@
+# For more details about configure and guides please check this link:
+# https://neo-universe.atlassian.net/wiki/spaces/ATM/pages/1974602775/iOS+Setup+fastlane
+
+
+default_platform(:ios)
+
+#------------------------------------------------------------ lane 1: For Dev --------------------------------------------------------------#
+desc "Archive and upload IPA to firebase for Development configuration"
+
+lane :Dev do
+	# Build App
+   	build_app(scheme: "ProjectName Dev",
+             	workspace: "MVVMKit.xcworkspace",
+             	include_bitcode: false,
+             	export_method: "enterprise")
+
+	# Get Release Note
+   	release_note = get_xcconfig_value(
+     		path: 'MVVMKit/Configurations/DevConfig.xcconfig',
+     		name: 'PREFIX_NAME_RELEASE_NOTE'
+   	)
+
+	# Upload to deploygate
+       	deploygate(
+    		message: release_note,	
+    		api_token: "cb48ee80f4c5a5fd030209e197bbae5bceb6a6dc",
+    		user: "NhanNguyen",
+  	)
+end
+
+
+#------------------------------------------------------------ lane 2: For Staging --------------------------------------------------------------#
+desc "Archive and upload IPA to firebase for Staging configuration"
+
+lane :Staging do
+	# Build App
+   	build_app(scheme: "ProjectName Stag",
+             	workspace: "MVVMKit.xcworkspace",
+             	include_bitcode: true,
+             	export_method: "enterprise")
+
+	# Get Release Note
+   	release_note = get_xcconfig_value(
+     		path: 'MVVMKit/Configurations/StagConfig.xcconfig',
+     		name: 'PREFIX_NAME_RELEASE_NOTE'
+   	)
+             
+	# Upload to Firebase
+   	firebase_app_distribution(
+             	app: "1:917787414578:ios:f6597691fda175a847xxxx",
+             	firebase_cli_token: "1//0eMhpEChPwdqaCgYIARAAGA4SNwF-L9IrefIXNeWAoUHMPj87UpV5W0sni083sRF5UL_mryITBShO5_qf7M0fsQ-8JAurxxxxxx",
+             	groups: "group1, group2, group3",
+             	release_notes: release_note)
+end
