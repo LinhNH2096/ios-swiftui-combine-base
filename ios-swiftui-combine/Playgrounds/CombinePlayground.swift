@@ -18,7 +18,7 @@ final class CombinePlayground {
 
     func start() {
         print("[CombinePlayground]: START")
-        leesion_2()
+        leesion_3()
     }
 }
 
@@ -207,7 +207,7 @@ extension CombinePlayground {
                 print("[CombinePlayground]: CurrentValueSubject 2: \(value)")
             }.store(in: &subscriptions)
 
-//        let anyPublisher: AnyPublisher = passthroughSubject.eraseToAnyPublisher()
+        //        let anyPublisher: AnyPublisher = passthroughSubject.eraseToAnyPublisher()
         let anyPublisher: AnyPublisher = currentValueSubject.eraseToAnyPublisher()
 
         anyPublisher
@@ -237,4 +237,121 @@ extension CombinePlayground {
             }
         }
     }
+}
+
+// MARK: - LESSON 3
+extension CombinePlayground {
+    private func leesion_3() {
+        print("[CombinePlayground]: ===========")
+        print("[CombinePlayground]: Combine Lesson 3\n")
+        print("[CombinePlayground]: CUSTOM SUBSCRIBE")
+
+        let dog = Lesson3Dog(name: "Milu")
+        print("[CombinePlayground]: Dog Name: \(dog.name)")
+        let subscriberAssign = Subscribers.Assign(object: dog, keyPath: \.name)
+        let nameJust = Just("Miloo")
+        nameJust.subscribe(subscriberAssign)
+        print("[CombinePlayground]: Dog Name: \(dog.name)")
+
+        let subscribeSink = Subscribers.Sink<String, Never> { completion in
+            print("[CombinePlayground]: Subscribers Sink \(completion)")
+        } receiveValue: { value in
+            dog.name = value
+            print("[CombinePlayground]: Subscribers Sink Value \(value)")
+        }
+
+        let nameSubject: PassthroughSubject<String, Never> = PassthroughSubject()
+//        subscribeSink.cancel() // Not work
+        nameSubject.subscribe(subscribeSink)
+//        subscribeSink.cancel() // Work
+
+        nameSubject.send("Mino")
+        print("[CombinePlayground]: Dog Name: \(dog.name)")
+        nameSubject.send(completion: .finished)
+        print("[CombinePlayground]: Dog Name: \(dog.name)")
+
+        let stringPublisher = Just("Linh Nguyen")
+        let stringSubscribe = StringSubscribe()
+        stringPublisher.subscribe(stringSubscribe)
+
+        let intPublisher: Publishers.Sequence<[Int], Never> = Array(1...10).publisher
+        let intSubscribe = IntSubscribe()
+        intPublisher.subscribe(intSubscribe)
+
+        print("\n")
+
+        let newDog = Lesson3Dog(name: "Dog 1")
+
+        let namePublisher: Publishers.Sequence<[String], Never> = Array(2...10).publisher.map({ "Dog \($0)" })
+
+        namePublisher.subscribe(newDog)
+        print("[CombinePlayground]: Dog: \(newDog.name)")
+    }
+
+    private class Lesson3Dog: Subscriber {
+        typealias Input = String
+
+        typealias Failure = Never
+
+        func receive(subscription: any Subscription) {
+            subscription.request(.max(5))
+        }
+
+        func receive(_ input: String) -> Subscribers.Demand {
+            print("[CombinePlayground]: Received Dog name ", input)
+            self.name = input
+            return .none
+        }
+
+        func receive(completion: Subscribers.Completion<Never>) {
+            print("[CombinePlayground]: Received Dog completion ", completion)
+        }
+
+        var name: String
+
+        init(name: String) {
+            self.name = name
+        }
+    }
+
+    private class StringSubscribe: Subscriber {
+
+        typealias Input = String
+
+        typealias Failure = Never
+
+        func receive(subscription: any Subscription) {
+            subscription.request(.unlimited)
+        }
+        
+        func receive(_ input: String) -> Subscribers.Demand {
+            print("[CombinePlayground]: Received String value ", input)
+            return .max(0)
+        }
+
+        func receive(completion: Subscribers.Completion<Never>) {
+            print("[CombinePlayground]: Received String completion ", completion)
+        }
+    }
+
+    private class IntSubscribe: Subscriber {
+
+        typealias Input = Int
+
+        typealias Failure = Never
+
+        func receive(subscription: any Subscription) {
+            subscription.request(.max(3))
+        }
+
+        func receive(_ input: Int) -> Subscribers.Demand {
+            print("[CombinePlayground]: Received Int value ", input)
+            return .max(0)
+        }
+
+        func receive(completion: Subscribers.Completion<Never>) {
+            print("[CombinePlayground]: Received Int completion ", completion)
+        }
+    }
+
 }
