@@ -12,6 +12,10 @@ struct ios_swiftui_combineApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onAppear(perform: {
+                    CombinePlayground.shared.start()
+                })
         }
+
     }
 }
