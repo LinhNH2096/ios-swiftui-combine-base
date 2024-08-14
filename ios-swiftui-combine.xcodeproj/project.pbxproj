@@ -15,6 +15,8 @@
 		68FDDE4C2C69E5AB001D6FF9 /* Combine_Lesson1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FDDE4B2C69E5AB001D6FF9 /* Combine_Lesson1.swift */; };
 		68FDDE4E2C69F008001D6FF9 /* Combine_Lesson2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FDDE4D2C69F008001D6FF9 /* Combine_Lesson2.swift */; };
 		68FDDE502C6B42A0001D6FF9 /* Combine_Lesson3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FDDE4F2C6B42A0001D6FF9 /* Combine_Lesson3.swift */; };
+		68FDDE522C6C8E6B001D6FF9 /* Combine_Leeson4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FDDE512C6C8E6B001D6FF9 /* Combine_Leeson4.swift */; };
+		68FDDE542C6C8E73001D6FF9 /* Combine_Leeson5.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68FDDE532C6C8E73001D6FF9 /* Combine_Leeson5.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +29,8 @@
 		68FDDE4B2C69E5AB001D6FF9 /* Combine_Lesson1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combine_Lesson1.swift; sourceTree = "<group>"; };
 		68FDDE4D2C69F008001D6FF9 /* Combine_Lesson2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combine_Lesson2.swift; sourceTree = "<group>"; };
 		68FDDE4F2C6B42A0001D6FF9 /* Combine_Lesson3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combine_Lesson3.swift; sourceTree = "<group>"; };
+		68FDDE512C6C8E6B001D6FF9 /* Combine_Leeson4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combine_Leeson4.swift; sourceTree = "<group>"; };
+		68FDDE532C6C8E73001D6FF9 /* Combine_Leeson5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combine_Leeson5.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +95,8 @@
 				68FDDE4B2C69E5AB001D6FF9 /* Combine_Lesson1.swift */,
 				68FDDE4D2C69F008001D6FF9 /* Combine_Lesson2.swift */,
 				68FDDE4F2C6B42A0001D6FF9 /* Combine_Lesson3.swift */,
+				68FDDE512C6C8E6B001D6FF9 /* Combine_Leeson4.swift */,
+				68FDDE532C6C8E73001D6FF9 /* Combine_Leeson5.swift */,
 			);
 			name = Combine;
 			sourceTree = "<group>";
@@ -167,10 +173,12 @@
 			files = (
 				68FDDE482C69CBAD001D6FF9 /* CombinePlayground.swift in Sources */,
 				68FDDE4E2C69F008001D6FF9 /* Combine_Lesson2.swift in Sources */,
+				68FDDE522C6C8E6B001D6FF9 /* Combine_Leeson4.swift in Sources */,
 				68FDDE4C2C69E5AB001D6FF9 /* Combine_Lesson1.swift in Sources */,
 				68FDDE502C6B42A0001D6FF9 /* Combine_Lesson3.swift in Sources */,
 				685A61AB2C69C66000F7E800 /* ContentView.swift in Sources */,
 				685A61A92C69C66000F7E800 /* ios_swiftui_combineApp.swift in Sources */,
+				68FDDE542C6C8E73001D6FF9 /* Combine_Leeson5.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
