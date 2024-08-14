@@ -18,7 +18,7 @@ final class CombinePlayground {
 
     func start() {
         print("[CombinePlayground]: START")
-        leesion_5()
+        leesion_6()
     }
 }
 
@@ -74,29 +74,31 @@ extension CombinePlayground {
         print("[CombinePlayground]: PUBLISHER")
 
         let helloPublisher: Publishers.Sequence<String, Never> = "Hello Combine".publisher
-        let helloSubscribe: AnyCancellable = helloPublisher
+        helloPublisher
             .sink { completion in
                 print("[CombinePlayground]: \(completion)\n")
             } receiveValue: { value in
                 print("[CombinePlayground]: Sink Value: \(value)")
             }
+            .cancel()
 
         let fibonacciPublisher: Publishers.Sequence<[Int], Never> = [0,1,1,2,3,5].publisher
-        let fibonacciSubscribe: AnyCancellable = fibonacciPublisher
+        fibonacciPublisher
             .sink { completion in
                 print("[CombinePlayground]: \(completion)\n")
             } receiveValue: { value in
                 print("[CombinePlayground]: Sink Value: \(value)")
             }
+            .cancel()
 
         let dictPublisher: Publishers.Sequence<[Int: String], Never> = [1: "Hello", 2: "World"].publisher
-        let dictSubscribe = dictPublisher
+        dictPublisher
             .sink { completion in
                 print("[CombinePlayground]: \(completion)\n")
             } receiveValue: { value in
                 print("[CombinePlayground]: Sink Value: \(value)")
             }
-
+            .cancel()
 
         let publisher1: Publishers.Sequence<[Int], Never> = Array(1...10).publisher
         let publisher2: Publishers.Sequence<[String], Never> = publisher1.map { $0.description }
@@ -156,11 +158,12 @@ extension CombinePlayground {
         print("[CombinePlayground]: \nSUBJECTS\n")
         let passthroughSubject = PassthroughSubject<Int, Never>()
         passthroughSubject.send(0)
-        let passthroughSubscribe1 = passthroughSubject.sink { completion in
+        passthroughSubject.sink { completion in
             print("[CombinePlayground]: PassthroughSubject 1 \(completion)")
         } receiveValue: { value in
             print("[CombinePlayground]: PassthroughSubject 1: \(value)")
         }
+        .store(in: &self.subscriptions)
 
         passthroughSubject.send(1)
         passthroughSubject.send(2)
@@ -594,5 +597,105 @@ extension CombinePlayground {
                 isDone.send()
             }
         }
+    }
+}
+
+// MARK: - LESSON 6
+extension CombinePlayground {
+    private func leesion_6() {
+        print("[CombinePlayground]: ===========")
+        print("[CombinePlayground]: Combine Lesson \n")
+        print("[CombinePlayground]: COMBINING OPERATORS\n")
+
+        print("\n[CombinePlayground]: prepend")
+        let numbers = [2, 3].publisher
+        numbers
+            .prepend(1, 2, 5)
+            .prepend(0, -1)
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .cancel()
+        print("\n")
+
+        numbers
+            .prepend([0, 1])
+            .prepend(Set(2...5))
+            .prepend(stride(from: 6, to: 10, by: 2))
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .cancel()
+        print("\n")
+
+        let prependPublisher = PassthroughSubject<Int, Never>()
+        numbers
+            .prepend(prependPublisher)
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .store(in: &subscriptions)
+        print("\n")
+        prependPublisher.send(0)
+        prependPublisher.send(1)
+        prependPublisher.send(completion: .finished) // prepend must be completion for trigger own publisher
+
+        print("\n[CombinePlayground]: Append")
+        let appendPublisher = CurrentValueSubject<Int, Never>(0)
+
+        Empty<Int, Never>()
+            .replaceEmpty(with: 0)
+            .append(13)
+            .append([11, 12])
+            .append(stride(from: 10, to: 15, by: 1))
+            .append(appendPublisher)
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .store(in: &subscriptions)
+        appendPublisher.send(100)
+
+        print("\n[CombinePlayground]: Switch To Lastest")
+        let publisher1 = PassthroughSubject<Int, Never>()
+        let publisher2 = PassthroughSubject<Int, Never>()
+        let publisher3 = PassthroughSubject<Int, Never>()
+        let publishers = PassthroughSubject<PassthroughSubject<Int, Never>, Never>()
+
+        publishers
+//            .flatMap({ $0 })
+            .switchToLatest()
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .store(in: &subscriptions)
+
+        print("\n")
+
+        publishers.send(publisher1)
+        publishers.send(publisher2)
+        publishers.send(publisher3)
+
+        publisher2.send(21)
+        publisher2.send(22)
+
+        publisher1.send(11)
+        publisher1.send(12)
+
+        publisher3.send(31)
+        publisher3.send(32)
+
+        print("\n")
+
+        let stringPublisher = CurrentValueSubject<String, Never>("-")
+        let intPublisher = CurrentValueSubject<Int, Never>(0)
+
+//        stringPublisher.combineLatest(intPublisher) { string, int in
+//            return string + " " + int.description
+//        }
+//        .sink(receiveValue: { print($0, terminator: " ")})
+//        .store(in: &subscriptions)
+
+        stringPublisher.zip(intPublisher) { string, int in
+            return string + "-" + int.description
+        }
+        .sink(receiveValue: { print($0, terminator: " ")})
+        .store(in: &subscriptions)
+
+        stringPublisher.send("Linh")
+        stringPublisher.send("Nguyen")
+
+        intPublisher.send(1)
+//        intPublisher.send(100)
+
     }
 }
