@@ -18,7 +18,7 @@ final class CombinePlayground {
 
     func start() {
         print("[CombinePlayground]: START")
-        leesion_3()
+        leesion_4()
     }
 }
 
@@ -151,7 +151,7 @@ extension CombinePlayground {
             } receiveValue: { value in
                 print("[CombinePlayground]: Future value: \(value)")
             }
-        //            .store(in: &self.subscriptions)
+            .store(in: &self.subscriptions)
 
         print("[CombinePlayground]: \nSUBJECTS\n")
         let passthroughSubject = PassthroughSubject<Int, Never>()
@@ -261,9 +261,9 @@ extension CombinePlayground {
         }
 
         let nameSubject: PassthroughSubject<String, Never> = PassthroughSubject()
-//        subscribeSink.cancel() // Not work
+        //        subscribeSink.cancel() // Not work
         nameSubject.subscribe(subscribeSink)
-//        subscribeSink.cancel() // Work
+        //        subscribeSink.cancel() // Work
 
         nameSubject.send("Mino")
         print("[CombinePlayground]: Dog Name: \(dog.name)")
@@ -323,7 +323,7 @@ extension CombinePlayground {
         func receive(subscription: any Subscription) {
             subscription.request(.unlimited)
         }
-        
+
         func receive(_ input: String) -> Subscribers.Demand {
             print("[CombinePlayground]: Received String value ", input)
             return .max(0)
@@ -354,4 +354,136 @@ extension CombinePlayground {
         }
     }
 
+}
+
+// MARK: - LESSON 4
+extension CombinePlayground {
+    private func leesion_4() {
+        print("[CombinePlayground]: ===========")
+        print("[CombinePlayground]: Combine Lesson 4\n")
+        print("[CombinePlayground]: TRANSFORMING OPERATORS\n")
+
+        let intPublisher: Publishers.Sequence<[Int], Never> = Array(0...9).publisher
+        intPublisher
+            .collect(3) // the number of element that enough to emit
+            .sink { array in
+                print("[CombinePlayground]: Collect array \(array)")
+            }
+            .cancel()
+
+        let personPublisher: Publishers.Sequence<[Lesson4Person], Never> = [Lesson4Person(name: "MiMi", age: 3),
+                                                                            Lesson4Person(name: "MiLy", age: 2),
+                                                                            Lesson4Person(name: "PoChi", age: 1),
+                                                                            Lesson4Person(name: "ChiPu", age: 3)].publisher
+        personPublisher
+            .sink { person in
+                print("[CombinePlayground]: \(person.name) - \(person.age)")
+            }
+            .cancel()
+
+        personPublisher
+            .map({ person in
+                return (person.name, person.age)
+            })
+            .sink { name, age in
+                print("[CombinePlayground]: \(name) - \(age)")
+            }
+            .cancel()
+
+        personPublisher
+            .map(\.name, \.age)
+            .sink { name, age in
+                print("[CombinePlayground]: \(name) - \(age)")
+            }
+            .cancel()
+
+        ["Hello", "world", nil, "!"].publisher
+            .tryMap { word in
+                return try self.throwFunction(input: word)
+            }
+            .sink { completion in
+                print("[CombinePlayground]: Try Map completion \(completion)")
+            } receiveValue: { value in
+                print("[CombinePlayground]: Try Map valye \(value)")
+            }
+            .cancel()
+
+        print("\n[CombinePlayground]: FLAT MAP")
+
+        let chatterA = Lesson4Chatter(name: "A", message: CurrentValueSubject("--A đã vào room--"))
+        let chatterB = Lesson4Chatter(name: "B", message: CurrentValueSubject("--B đã vào room--"))
+        let chatterC = Lesson4Chatter(name: "C", message: CurrentValueSubject("--C đã vào room--"))
+        chatterB.message.value = "B: Toi la B"
+        let roomChat = PassthroughSubject<Lesson4Chatter, Never>()
+
+        roomChat
+            .flatMap(maxPublishers: .max(2)) { $0.message }
+            .sink { chatCompletion in
+                print("[CombinePlayground]: Chat Completion \(chatCompletion)")
+            } receiveValue: { message in
+                print("[ROOM]: \(message)")
+            }
+            .store(in: &subscriptions)
+
+        roomChat.send(chatterA)
+        roomChat.send(chatterC)
+        chatterC.message.value = "C: Toi la C"
+        chatterA.message.send("A: Hello !")
+        roomChat.send(chatterB)
+        chatterB.message.value = "B: Hello A"
+
+        print("\n[CombinePlayground]: REPLACE")
+
+        ["Hello", nil, "World", "!"].publisher
+            .replaceNil(with: " ")
+            .compactMap({ $0 })
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .cancel()
+
+        print("\n")
+
+        Empty<Any, Never>()
+            .replaceEmpty(with: "<3")
+            .sink { value in
+                print("[CombinePlayground]: value \(value)")
+            }
+            .cancel()
+
+        (1...5).publisher
+            .scan(0, +)
+            .sink { value in
+                print(value, terminator: " ")
+            }
+            .cancel()
+
+        print("\n")
+
+        (1...5).publisher
+            .reduce(0, +)
+            .sink { value in
+                print(value )
+            }
+            .cancel()
+    }
+
+    private struct Lesson4Chatter {
+        let name: String
+        let message: CurrentValueSubject<String, Never>
+    }
+
+    private enum Lesson4Error: Error {
+        case nilValue
+    }
+
+    private func throwFunction(input: String?) throws -> String {
+        if input == nil {
+            throw Lesson4Error.nilValue
+        }
+        return input!
+    }
+
+    private struct Lesson4Person {
+        var name: String
+        var age: Int
+    }
 }
