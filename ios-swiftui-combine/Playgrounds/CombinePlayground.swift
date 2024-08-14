@@ -18,7 +18,7 @@ final class CombinePlayground {
 
     func start() {
         print("[CombinePlayground]: START")
-        leesion_4()
+        leesion_5()
     }
 }
 
@@ -485,5 +485,114 @@ extension CombinePlayground {
     private struct Lesson4Person {
         var name: String
         var age: Int
+    }
+}
+
+// MARK: - LESSON 5
+extension CombinePlayground {
+    private func leesion_5() {
+        print("[CombinePlayground]: ===========")
+        print("[CombinePlayground]: Combine Lesson 5\n")
+        print("[CombinePlayground]: FILTERING OPERATORS\n")
+        let numberPublisher = (1...10).publisher
+
+        numberPublisher
+            .filter { number in
+                number.isMultiple(of: 2)
+            }
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .cancel()
+
+        print("\n")
+
+        let wordsPublisher = "Hôm nay nay, trời trời nhẹ trời lên cao cao. Tôi Tôi buồn buồn không hiểu vì vì sao tôi tôi buồn."
+            .components(separatedBy: " ")
+            .publisher
+
+        wordsPublisher
+            .removeDuplicates()
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .cancel()
+
+        print("\n ignoreOutput")
+
+        numberPublisher
+            .ignoreOutput()
+            .sink { completion in
+                print("[CombinePlayground]: Number Publisher completion")
+            } receiveValue: { value in
+                print("[CombinePlayground]: Number \(value)")
+            }
+            .cancel()
+
+        print("\n first where")
+        numberPublisher
+            .first(where: { $0 % 2 == 0 })
+            .sink(receiveValue: { print($0)})
+            .cancel()
+
+        print("\n last where")
+        numberPublisher
+            .last(where: { $0 % 2 == 0 })
+            .sink(receiveValue: { print($0)})
+            .cancel()
+
+        print("\n dropFirst")
+        numberPublisher
+            .dropFirst(5)
+            .sink(receiveValue: { print($0)})
+            .cancel()
+
+        print("\n drop while")
+        numberPublisher
+            .drop(while: { $0 <= 5})
+            .sink(receiveValue: { print($0)})
+            .cancel()
+
+        print("\n drop untilOutputFrom")
+        let tapNumberSubject = PassthroughSubject<Int, Never>()
+        let isReady = PassthroughSubject<Void, Never>()
+
+        tapNumberSubject
+            .drop(untilOutputFrom: isReady)
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .store(in: &subscriptions)
+
+        (1...10)
+            .forEach { number in
+                tapNumberSubject.send(number)
+                if number == 5 {
+                    isReady.send(())
+                }
+            }
+
+        print("\n prefix")
+        numberPublisher
+            .prefix(5)
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .cancel()
+
+        print("\n prefix while")
+        numberPublisher
+            .prefix(while: { $0 < 5 })
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .cancel()
+
+        print("\n prefix untilOutputFrom")
+        let sendSubject = PassthroughSubject<Int, Never>()
+        let isDone = PassthroughSubject<Void, Never>()
+
+        sendSubject
+            .prefix(untilOutputFrom: isDone)
+            .sink(receiveValue: { print($0, terminator: " ")})
+            .store(in: &subscriptions)
+
+        (1...15).forEach { n in
+            sendSubject.send(n)
+
+            if n == 5 {
+                isDone.send()
+            }
+        }
     }
 }
