@@ -18,7 +18,7 @@ final class CombinePlayground {
 
     func start() {
         print("[CombinePlayground]: START")
-        leesion_6()
+        leesion_7()
     }
 }
 
@@ -654,7 +654,7 @@ extension CombinePlayground {
         let publishers = PassthroughSubject<PassthroughSubject<Int, Never>, Never>()
 
         publishers
-//            .flatMap({ $0 })
+        //            .flatMap({ $0 })
             .switchToLatest()
             .sink(receiveValue: { print($0, terminator: " ")})
             .store(in: &subscriptions)
@@ -679,14 +679,14 @@ extension CombinePlayground {
         let stringPublisher = CurrentValueSubject<String, Never>("-")
         let intPublisher = CurrentValueSubject<Int, Never>(0)
 
-//        stringPublisher.combineLatest(intPublisher) { string, int in
-//            return string + " " + int.description
-//        }
-//        .sink(receiveValue: { print($0, terminator: " ")})
-//        .store(in: &subscriptions)
+        stringPublisher.combineLatest(intPublisher) { string, int in
+            return string + "-combine-" + int.description
+        }
+        .sink(receiveValue: { print($0, terminator: " ")})
+        .store(in: &subscriptions)
 
         stringPublisher.zip(intPublisher) { string, int in
-            return string + "-" + int.description
+            return string + "-zip-" + int.description
         }
         .sink(receiveValue: { print($0, terminator: " ")})
         .store(in: &subscriptions)
@@ -695,7 +695,154 @@ extension CombinePlayground {
         stringPublisher.send("Nguyen")
 
         intPublisher.send(1)
-//        intPublisher.send(100)
+        intPublisher.send(100)
 
+
+        let publisher = ["A", "B", "C", "D", "E"].publisher
+        publisher
+            .output(in: 0...10)
+            .sink(receiveCompletion: { print($0) },
+                  receiveValue: { print("Value in range: \($0)") })
+            .store(in: &subscriptions)
+
+        let publisherNumber = stride(from: 0, to: 5, by: 2).publisher
+
+        (2...10).publisher
+            .print("publisher")
+            .allSatisfy { $0 % 2 == 0 }
+            .sink(receiveValue: { allEven in
+                print(allEven ? "All numbers are even"
+                      : "Something is odd...")
+            })
+            .store(in: &subscriptions)
+
+        let publisherWord = ["Hel", "lo", " ", "Wor", "ld", "!"].publisher
+
+        publisherWord
+            .reduce("", +)
+            .sink(receiveValue: { print("Reduced into: \($0)") })
+            .store(in: &subscriptions)
+
+        publisherWord
+            .scan("", +)
+            .sink(receiveValue: { print("Scan into: \($0)") })
+            .store(in: &subscriptions)
+    }
+}
+
+// MARK: - LESSON 7
+extension CombinePlayground {
+    private func leesion_7() {
+        print("[CombinePlayground]: ===========")
+        print("[CombinePlayground]: Combine Lesson \n")
+        print("[CombinePlayground]: TIME MANIPULATION OPERATORS\n")
+
+        leesion7_measureInterval()
+    }
+
+    private func leesion7_share() {
+        let dataPublisher = fetchData()
+
+        dataPublisher
+            .sink { data in
+                print("FETCH1: \(data)")
+            }
+            .store(in: &subscriptions)
+
+        dataPublisher
+            .sink { data in
+                print("FETCH2: \(data)")
+            }
+            .store(in: &subscriptions)
+    }
+
+    func fetchData() -> AnyPublisher<String, Never> {
+        Future { promise in
+            print("Bắt đầu tải dữ liệu từ mạng...")
+            DispatchQueue.main.asyncAfter(deadline: .now()+2) {
+                promise(.success("Fetch data: SUCCESS"))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+
+    private func leesion7_delay() {
+        print("[Lession7]: ===========DELAY========")
+        let timerPublisher = Timer
+            .publish(every: 1, on: .main, in: .default)
+            .autoconnect()
+
+        let df = DateFormatter()
+        df.dateStyle = .none
+        df.timeStyle = .long
+
+        timerPublisher
+            .handleEvents(receiveOutput: { date in
+                print ("Sending Timestamp \'\(df.string(from: date))\' to delay()")
+            })
+            .delay(for: 3, scheduler: RunLoop.main)
+            .sink(
+                receiveCompletion: { print ("completion: \($0)", terminator: "\n") },
+                receiveValue: { value in
+                    let now = Date()
+                    print ("At \(df.string(from: now)) received  Timestamp \'\(df.string(from: value))\' sent:\(String(format: "%.2f", now.timeIntervalSince(value))) secs ago", terminator: "\n")
+                }
+            )
+            .store(in: &subscriptions)
+    }
+
+    private func leesion7_collect() {
+        let timerPublisher = Timer
+            .publish(every: 1, on: RunLoop.main, in: .default)
+            .autoconnect()
+
+        timerPublisher
+            .collect(.byTime(RunLoop.current, .seconds(3)))
+            .flatMap { dates in dates.publisher }
+            .sink { completion in
+                print("Completion: \(completion)")
+            } receiveValue: { output in
+                print("output: \(output)")
+            }
+            .store(in: &subscriptions)
+    }
+
+    private func leesion7_timeout() {
+        let timerPublisher = Timer
+            .publish(every: 1, on: RunLoop.main, in: .default)
+            .autoconnect()
+
+        timerPublisher
+            .handleEvents(receiveOutput: { output in
+                print("Output: \(output)")
+            })
+            .delay(for: 3, scheduler: RunLoop.current)
+            .timeout(4, scheduler: RunLoop.current)
+            .sink { completion in
+                print("Completion: \(completion)")
+            } receiveValue: { value in
+                print("Value: \(value)")
+            }
+            .store(in: &subscriptions)
+    }
+
+    private func leesion7_measureInterval() {
+        let timerPublisher = Timer
+            .publish(every: 1, on: RunLoop.main, in: .default)
+            .autoconnect()
+
+        timerPublisher
+            .measureInterval(using: DispatchQueue.main)
+            .sink { string in
+                   print("🔵 : \(string)")
+               }
+               .store(in: &subscriptions)
+
+        timerPublisher
+            .measureInterval(using: RunLoop.main)
+            .sink { string in
+                   print("🔴 : \(string)")
+               }
+               .store(in: &subscriptions)
     }
 }
