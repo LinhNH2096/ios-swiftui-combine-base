@@ -18,13 +18,13 @@ final class CombinePlayground {
 
     func start() {
         print("[CombinePlayground]: START")
-        leesion_7()
+        leeson_8()
     }
 }
 
 // MARK: - LESSON 1
 extension CombinePlayground {
-    private func leesion_1() {
+    private func leeson_1() {
         print("[CombinePlayground]: ===========")
         print("[CombinePlayground]: Combine Lesson 1\n")
         print("[CombinePlayground]: SINK")
@@ -68,7 +68,7 @@ extension CombinePlayground {
 
 // MARK: - LESSON 2
 extension CombinePlayground {
-    private func leesion_2() {
+    private func leeson_2() {
         print("[CombinePlayground]: ===========")
         print("[CombinePlayground]: Combine Lesson 2\n")
         print("[CombinePlayground]: PUBLISHER")
@@ -244,7 +244,7 @@ extension CombinePlayground {
 
 // MARK: - LESSON 3
 extension CombinePlayground {
-    private func leesion_3() {
+    private func leeson_3() {
         print("[CombinePlayground]: ===========")
         print("[CombinePlayground]: Combine Lesson 3\n")
         print("[CombinePlayground]: CUSTOM SUBSCRIBE")
@@ -361,7 +361,7 @@ extension CombinePlayground {
 
 // MARK: - LESSON 4
 extension CombinePlayground {
-    private func leesion_4() {
+    private func leeson_4() {
         print("[CombinePlayground]: ===========")
         print("[CombinePlayground]: Combine Lesson 4\n")
         print("[CombinePlayground]: TRANSFORMING OPERATORS\n")
@@ -493,7 +493,7 @@ extension CombinePlayground {
 
 // MARK: - LESSON 5
 extension CombinePlayground {
-    private func leesion_5() {
+    private func leeson_5() {
         print("[CombinePlayground]: ===========")
         print("[CombinePlayground]: Combine Lesson 5\n")
         print("[CombinePlayground]: FILTERING OPERATORS\n")
@@ -602,7 +602,7 @@ extension CombinePlayground {
 
 // MARK: - LESSON 6
 extension CombinePlayground {
-    private func leesion_6() {
+    private func leeson_6() {
         print("[CombinePlayground]: ===========")
         print("[CombinePlayground]: Combine Lesson \n")
         print("[CombinePlayground]: COMBINING OPERATORS\n")
@@ -705,8 +705,6 @@ extension CombinePlayground {
                   receiveValue: { print("Value in range: \($0)") })
             .store(in: &subscriptions)
 
-        let publisherNumber = stride(from: 0, to: 5, by: 2).publisher
-
         (2...10).publisher
             .print("publisher")
             .allSatisfy { $0 % 2 == 0 }
@@ -732,15 +730,15 @@ extension CombinePlayground {
 
 // MARK: - LESSON 7
 extension CombinePlayground {
-    private func leesion_7() {
+    private func leeson_7() {
         print("[CombinePlayground]: ===========")
         print("[CombinePlayground]: Combine Lesson \n")
         print("[CombinePlayground]: TIME MANIPULATION OPERATORS\n")
 
-        leesion7_measureInterval()
+        leeson7_measureInterval()
     }
 
-    private func leesion7_share() {
+    private func leeson7_share() {
         let dataPublisher = fetchData()
 
         dataPublisher
@@ -766,7 +764,7 @@ extension CombinePlayground {
         .eraseToAnyPublisher()
     }
 
-    private func leesion7_delay() {
+    private func leeson7_delay() {
         print("[Lession7]: ===========DELAY========")
         let timerPublisher = Timer
             .publish(every: 1, on: .main, in: .default)
@@ -791,7 +789,7 @@ extension CombinePlayground {
             .store(in: &subscriptions)
     }
 
-    private func leesion7_collect() {
+    private func leeson7_collect() {
         let timerPublisher = Timer
             .publish(every: 1, on: RunLoop.main, in: .default)
             .autoconnect()
@@ -807,7 +805,7 @@ extension CombinePlayground {
             .store(in: &subscriptions)
     }
 
-    private func leesion7_timeout() {
+    private func leeson7_timeout() {
         let timerPublisher = Timer
             .publish(every: 1, on: RunLoop.main, in: .default)
             .autoconnect()
@@ -826,7 +824,7 @@ extension CombinePlayground {
             .store(in: &subscriptions)
     }
 
-    private func leesion7_measureInterval() {
+    private func leeson7_measureInterval() {
         let timerPublisher = Timer
             .publish(every: 1, on: RunLoop.main, in: .default)
             .autoconnect()
@@ -844,5 +842,78 @@ extension CombinePlayground {
                    print("🔴 : \(string)")
                }
                .store(in: &subscriptions)
+    }
+}
+
+// MARK: - LESSON 8
+extension CombinePlayground {
+    private func leeson_8() {
+        print("[CombinePlayground]: ===========")
+        print("[CombinePlayground]: Combine Lesson \n")
+        print("[CombinePlayground]: SEQUENCE OPERATORS\n")
+
+        leeson8_finding()
+    }
+
+    private func leeson8_finding() {
+        [1, -50, 246, 0].publisher
+            .min()
+            .sink(receiveValue: { print("Lowest value is \($0)") })
+            .store(in: &subscriptions)
+
+        ["12345",
+         "ab",
+         "hello world"]
+            .compactMap { $0.data(using: .utf8) } // [Data]
+            .publisher
+            .max(by: { $0.count < $1.count }) // must be < operator
+            .sink(receiveValue: { data in
+                let string = String(data: data, encoding: .utf8)!
+                print("Smallest data is \(string), \(data.count) bytes")
+            })
+            .store(in: &subscriptions)
+
+        ["J", "O", "H", "N"]
+            .publisher
+            .first(where: { "Hello World".contains($0) })
+            .sink(receiveValue: { print("First match is \($0)") })
+            .store(in: &subscriptions)
+
+        ["A", "B", "C"]
+            .publisher
+            .output(at: 3) // Out of bound -> emit Never
+            .sink(receiveValue: { print("Value at index 1 is \($0)") })
+            .store(in: &subscriptions)
+
+        ["A", "B", "C", "D", "E"]
+            .publisher
+            .output(in: 0...10) // -1 make crash
+            .collect()
+            .sink(receiveCompletion: { print($0) },
+                  receiveValue: { print("Value in range: \($0)") })
+            .store(in: &subscriptions)
+
+        ["A", "B", "C"]
+            .publisher
+            .count()
+            .sink(receiveValue: { print("I have \($0) items") })
+            .store(in: &subscriptions)
+
+        [(1, "A"),
+         (2, "B"),
+         (3, "C"),
+         (4, "D"),
+         (5, "E"),
+         (6, "F")]
+        .publisher
+        .map(Leeson8Person.init)
+        .contains(where: { $0.id == 1 })
+        .sink(receiveValue: { print($0, terminator: "\n")})
+        .store(in: &subscriptions)
+    }
+
+    private struct Leeson8Person {
+        var id: Int
+        var name: String
     }
 }
